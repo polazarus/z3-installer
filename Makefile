@@ -7,12 +7,12 @@ OCAMLWHERE = $(shell ocamlc -where)
 OCAMLC = ocamlc
 OCAMLOPT = ocamlopt
 
-CC = gcc
-CFLAGS = -I$(OCAMLWHERE) $(Z3_INCLUDE:%=-I%) -fPIC
-
 Z3_BIN = ../bin
 Z3_INCLUDE = ../include
 Z3_LIB = ../lib
+
+CC = gcc
+CFLAGS = -I$(OCAMLWHERE) $(Z3_INCLUDE:%=-I%) -fPIC
 
 # META #########################################################################
 
@@ -78,14 +78,15 @@ $(NAME).cma: dllz3stubs.so z3.cmo
 
 ################################################################################
 
-install: z3.cma z3.cmxa z3.cmi libz3stubs.a dllz3stubs.so META
+install: META $(NAME).cma $(NAME).cmxa z3.cmi libz3stubs.a dllz3stubs.so
 ifeq ($(shell which ocamlfind),)
-	install -d $(OCAMLWHERE)/z3
-	install -t $(OCAMLWHERE)/z3 z3.cma z3.cmxa z3.cmi z3.a libz3stubs.a META
+	install -d $(OCAMLWHERE)/$(NAME)
+	install -t $(OCAMLWHERE)/$(NAME) $(NAME).cma $(NAME).cmxa $(NAME).a \
+z3.cmi libz3stubs.a META
 	install -t $(OCAMLWHERE)/stublibs dllz3stubs.so
 else
-	ocamlfind install z3 META z3.cma z3.cmx z3.cmi z3.a libz3stubs.a \
--dll dllz3stubs.so
+	ocamlfind install $(NAME) META $(NAME).cma $(NAME).cmxa $(NAME).a \
+z3.cmi libz3stubs.a -dll dllz3stubs.so
 endif
 
 uninstall:
