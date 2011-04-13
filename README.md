@@ -2,15 +2,15 @@ Z3 Installer
 ============
 Mickaël Delahaye, 2011
 
-Microsoft Z3 is a powerful SMT solver. The authors of this tool let a Linux
+[Microsoft Z3][1] is a powerful SMT solver. The authors of this tool let a Linux
 version available to researchers, and it comes with its own Ocaml binding.
 However, building and installing it is just too boring to do more than once.
-Here is somes files that automates the task.
+Here is some files that automates the task.
 
 To the point
 ------------
 
-First, get the installer either by downloading it from [Github][1]
+First, get the installer either by downloading it from [Github][2]
 or by cloning it :
 
 	git clone git://github.com/polazarus/z3-installer.git
@@ -18,16 +18,16 @@ or by cloning it :
 Then use it:
 
 	cd z3-installer
-	make # download Z3 and build the Ocaml library (native and byte)
+	make # download Z3 AND build the Ocaml library (native and byte)
 	sudo make install # install Z3 binary, DLL and the Ocaml library
 
 Requirements
 ------------
 
-- Ocaml (shocking!)
-- Camlidl
 - GCC, GNU Make
-- Ocaml Findlib (optionally)
+- Ocaml (shocking!)
+- [Camlidl][3]
+- Findlib (optionally)
 
 More
 ----
@@ -47,7 +47,7 @@ system. In doubt, let the installer choose for you.
     requires lib-install),
 
 *   `clean` (remove build artifacts)
-*   `distclean` (clean + remove libraries and downloaded files)
+*   `distclean` (remove build artifacts and libraries)
 
 ### Makefile options
 
@@ -114,5 +114,6 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 
-
-[1]: https://github.com/polazarus/ocaml-z3-makefile/tarball/master
+[1]: http://research.microsoft.com/en-us/um/redmond/projects/z3/
+[2]: https://github.com/polazarus/ocaml-z3-makefile/tarball/master
+[3]: http://caml.inria.fr/pub/old_caml_site/camlidl/
