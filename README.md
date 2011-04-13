@@ -8,7 +8,7 @@ However, building and installing it is just too boring to do more than once.
 Here is somes files that automates the task.
 
 To the point
-------
+------------
 
 First, get the installer either by downloading it from [Github][1]
 or by cloning it :
@@ -25,22 +25,28 @@ Requirements
 
 - Ocaml (shocking!)
 - Camlidl
+- GCC, GNU Make
+- Ocaml Findlib (optionally)
 
 More
 ----
 
-If you have already downloaded Z3 beforehand, please extract the tar in the
-directory you put this tool before calling `make`.
+If you have already downloaded Z3, please put the tarball in the `tarballs`
+directory before running `make`. Beware of choosing a wrong build of Z3 for your
+system. In doubt, let the installer choose for you.
 
 ### Targets
 
-* `install`, `uninstall`
-* `bin-install`, `bin-uninstall` (just the Z3 binary)
-* `lib-install`, `lib-uninstall` (just the library and its headers)
-* `ocaml-install`, `ocaml-uninstall` (just the OCaml binding, the installation requires lib-install),
+*   `update`, search a new version if available
 
-* `clean` (remove build artifacts)
-* `distclean` (clean + remove libraries and downloaded files)
+*   `install`, `uninstall`
+*   `bin-install`, `bin-uninstall` (just the Z3 binary)
+*   `lib-install`, `lib-uninstall` (just the library and its headers)
+*   `ocaml-install`, `ocaml-uninstall` (just the OCaml binding, the installation
+    requires lib-install),
+
+*   `clean` (remove build artifacts)
+*   `distclean` (clean + remove libraries and downloaded files)
 
 ### Makefile options
 
@@ -50,25 +56,25 @@ directory you put this tool before calling `make`.
 
         sudo make install WITH_GMP=true # use Z3 DLL with GMP statically linked
 
-    Not available in the 64 bit build
+    Seems to be not available in the 64 bit build.
+    Warning! did not need it, did not test it...
 
-* `BIN`, library installation directory by default `/usr/local/bin`
-* `LIB`, library installation directory by default `/usr/local/lib`
-* `INCLUDE`, library installation directory by default `/usr/local/bin`
+*   `BIN`, library installation directory by default `/usr/local/bin`
+*   `LIB`, library installation directory by default `/usr/local/lib`
+*   `INCLUDE`, library installation directory by default `/usr/local/bin`
 
         sudo make install BIN=/opt/bin LIB=/opt/lib INCLUDE=/opt/include
 
 ### Ocaml library
 
-This installer uses ocamlfind if it finds it, so it may install the Ocaml
-library either in `ocamlc -where` or `ocamlfind printconf destdir`.
-With ocamlfind, you can choose to force the destination directory using
-`OCAMLFIND_INSTALL_FLAGS`:
+This installer uses Findlib if it finds it, so it may install the Ocaml library
+either in `ocamlc -where` or `ocamlfind printconf destdir`. With Findlib, you
+can choose to force the destination directory using `OCAMLFIND_INSTALL_FLAGS`:
 
     sudo make install OCAMLFIND_INSTALL_FLAGS='-destdir `ocamlc -where`'
     # Install the Ocaml library in `ocamlc -where`
 
-You can also deactivate ocamlfind altogether:
+You can also deactivate the use of Findlib altogether:
 
     sudo make install OCAMLFIND=
 

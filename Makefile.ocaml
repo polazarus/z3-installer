@@ -1,19 +1,24 @@
 # A Makefile to build and install Z3 as an Ocaml library under Linux
 # Mickaël Delahaye, 2011
 
-LIB = /usr/local/lib
-OCAMLWHERE = $(shell ocamlc -where)
-
 OCAMLC = ocamlc
 OCAMLOPT = ocamlopt
 OCAMLFIND = ocamlfind
+OCAMLDOC = ocamldoc
+
+# Findlib package installation obtion, for instance -destdir /usr/lib/ocaml
+OCAMLFIND_INSTALL_FLAGS =
 
 Z3_BIN = ../bin
 Z3_INCLUDE = ../include
 Z3_LIB = ../lib
 
 CC = gcc
+LD = ld
 CFLAGS = -I$(OCAMLWHERE) $(Z3_INCLUDE:%=-I%) -fPIC
+STRIP = strip
+
+OCAMLWHERE = $(shell ocamlc -where)
 
 # META #########################################################################
 
@@ -24,15 +29,13 @@ DESCRIPTION = Z3 SMT Solver
 ################################################################################
 
 .PHONY: all distclean clean byte native \
-install install-z3 install-z3-gmp doc \
-META
+  install install-z3 install-z3-gmp doc \
+  META
 
 ################################################################################
 
 all: byte native
-
 native: $(NAME).cmxa
-
 byte: $(NAME).cma
 
 ################################################################################
@@ -44,9 +47,8 @@ META:
 	@echo 'archive(native) = "$(NAME).cmxa"' >> $@
 
 # One object file for all source files & partial linking with camlidl
-z3_stubs.o: z3_stubs.c z3_theory_stubs.c
-	$(CC) $(CFLAGS) -L$(OCAMLWHERE) -lcamlidl -nostdlib -r $^ -fPIC -o $@
-
+z3_all_stubs.o: z3_stubs.o z3_theory_stubs.o
+	$(LD) -L$(Z3_LIB) -L$(OCAMLWHERE) -r $^ -lcamlidl -o $@
 
 # Generic Ocaml building
 .SUFFIXES: .mli .cmi .ml .cmo .cmx
@@ -61,48 +63,55 @@ z3_stubs.o: z3_stubs.c z3_theory_stubs.c
 # Dependencies
 z3.cmx z3.cmo : z3.cmi
 
-# Native OCaml library
+# Native OCaml library #########################################################
 $(NAME).cmxa: libz3stubs.a z3.cmx
-	$(OCAMLOPT) -verbose -a -o $@ -cclib -lz3stubs -cclib -lz3 z3.cmx
-# Static library for native compilation (still dependent to libz3.so)
-libz3stubs.a: z3_stubs.o
+	$(OCAMLOPT) -a -o $@ -cclib -lz3 -cclib -lz3stubs z3.cmx
+
+# Static library for native compilation (still depend on libz3.so)
+libz3stubs.a: z3_all_stubs.o
 	ar rcs libz3stubs.a $<; ranlib libz3stubs.a
 
-# Dynamic library for byte compilation
-dllz3stubs.so: z3_stubs.o
-	$(CC) -shared $(Z3_INCLUDE:%=-I%) $(Z3_LIB:%=-L%) -lz3  $< \
--o dllz3stubs.so
-
-# Byte OCaml library
+# Byte OCaml library ###########################################################
 $(NAME).cma: dllz3stubs.so z3.cmo
 	$(OCAMLC) -a -o $@ -dllib -lz3stubs z3.cmo
 
+# Dynamic library for byte compilation
+dllz3stubs.so: z3_all_stubs.o
+	$(CC) -shared -I$(Z3_INCLUDE) -L$(Z3_LIB) $< -lz3 -o dllz3stubs.so
+
 ################################################################################
 
-install: META $(NAME).cma $(NAME).cmxa z3.cmi libz3stubs.a dllz3stubs.so
 ifeq ($(shell which $(OCAMLFIND)),)
+
+install: META $(NAME).cma $(NAME).cmxa z3.cmi libz3stubs.a dllz3stubs.so
 	install -d $(OCAMLWHERE)/$(NAME)
 	install -t $(OCAMLWHERE)/$(NAME) $(NAME).cma $(NAME).cmxa $(NAME).a \
 z3.cmi libz3stubs.a META
 	install -t $(OCAMLWHERE)/stublibs dllz3stubs.so
-else
-	$(OCAMLFIND) install $(OCAMLFIND_INSTALL_FLAGS) $(NAME) META $(NAME).cma $(NAME).cmxa $(NAME).a \
-z3.cmi libz3stubs.a -dll dllz3stubs.so
-endif
 
 uninstall:
-ifeq ($(shell which $(OCAMLFIND)),)
 	$(RM) -r $(OCAMLWHERE)/z3 $(OCAMLWHERE)/stublibs/dllz3stubs.so
+
 else
-	$(OCAMLFIND) remove  $(OCAMLFIND_INSTALL_FLAGS) z3
+
+install: META $(NAME).cma $(NAME).cmxa z3.cmi libz3stubs.a dllz3stubs.so
+	$(OCAMLFIND) install $(OCAMLFIND_INSTALL_FLAGS) $(NAME) META $(NAME).cma \
+$(NAME).cmxa $(NAME).a z3.cmi libz3stubs.a -dll dllz3stubs.so
+
+uninstall:
+	$(OCAMLFIND) remove $(OCAMLFIND_INSTALL_FLAGS) z3
+
 endif
 
 ################################################################################
 
 doc:
 	@mkdir -p doc
-	ocamldoc z3.mli -html -d doc
+	$(OCAMLDOC) z3.mli -html -d doc
 
 ################################################################################
-distclean clean:
-	$(RM) *.cmo *.cmi *.cmx *.cma *.cmxa *.o *.a *.so
+
+clean:
+	$(RM) *.cmo *.cmi *.cmx *.o
+distclean:
+	$(RM) -r doc *.cmxa *.cma *.a *.so
