@@ -12,7 +12,8 @@ To the point
 
 First, get the installer either by downloading it from [Github][1]
 or by cloning it :
-	git clone --depth 0 git://github.com/polazarus/z3-installer.git
+
+	git clone git://github.com/polazarus/z3-installer.git
 
 Then use it:
 
