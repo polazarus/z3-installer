@@ -1,116 +1,60 @@
-# A Makefile to build and install Z3 as an Ocaml library under Linux
+# Download, compile and install Z3 for Ocaml
 # Mickaël Delahaye, 2011
 
+BIN = /usr/local/bin
 LIB = /usr/local/lib
-OCAMLWHERE = $(shell ocamlc -where)
+INCLUDE = /usr/local/include
 
-OCAMLC = ocamlc
-OCAMLOPT = ocamlopt
+Z3_BIN = z3/bin
+Z3_LIB = z3/lib
+Z3_INCLUDE = z3/include
 
-Z3_BIN = ../bin
-Z3_INCLUDE = ../include
-Z3_LIB = ../lib
+all: ocaml
 
-CC = gcc
-CFLAGS = -I$(OCAMLWHERE) $(Z3_INCLUDE:%=-I%) -fPIC
+z3/ocaml/Makefile: z3/
+	@echo '-include ../../Makefile.ocaml' > $@
 
-# META #########################################################################
+z3/ :
+	sh download.sh
 
-NAME = z3
-VERSION = $(shell $(Z3_BIN)/z3 -version | cut -d' ' -f3)
-DESCRIPTION = Z3 SMT Solver
+ocaml: z3/ocaml/Makefile
+	$(MAKE) -C z3/ocaml
 
-################################################################################
+ocaml-install: lib-install
+	$(MAKE) -C z3/ocaml install
 
-.PHONY: all distclean clean byte native \
-install install-z3 install-z3-gmp doc \
-META
+ocaml-uninstall:
+	$(MAKE) -C z3/ocaml uninstall
 
-################################################################################
-
-all: byte native
-
-native: $(NAME).cmxa
-
-byte: $(NAME).cma
-
-################################################################################
-
-META:
-	@echo 'version = "$(VERSION)"' > $@
-	@echo 'description = "$(DESCRIPTION)"' >> $@
-	@echo 'archive(byte) = "$(NAME).cma"' >> $@
-	@echo 'archive(native) = "$(NAME).cmxa"' >> $@
-
-# One object file for all source files & partial linking with camlidl
-z3_stubs.o: z3_stubs.c z3_theory_stubs.c
-	$(CC) $(CFLAGS) -L$(OCAMLWHERE) -lcamlidl -nostdlib -r $^ -fPIC -o $@
-
-
-# Generic Ocaml building
-.SUFFIXES: .mli .cmi .ml .cmo .cmx
-
-.mli.cmi:
-	$(OCAMLC) -c $<
-.ml.cmo:
-	$(OCAMLC) -c $<
-.ml.cmx:
-	$(OCAMLOPT) -c $<
-
-# Dependencies
-z3.cmx z3.cmo : z3.cmi
-
-# Native OCaml library
-$(NAME).cmxa: libz3stubs.a z3.cmx
-	$(OCAMLOPT) -verbose -a -o $@ -cclib -lz3stubs -cclib -lz3 z3.cmx
-# Static library for native compilation (still dependent to libz3.so)
-libz3stubs.a: z3_stubs.o
-	ar rcs libz3stubs.a $<; ranlib libz3stubs.a
-
-# Dynamic library for byte compilation
-dllz3stubs.so: z3_stubs.o
-	$(CC) -shared $(Z3_INCLUDE:%=-I%) $(Z3_LIB:%=-L%) -lz3  $< \
--o dllz3stubs.so
-
-# Byte OCaml library
-$(NAME).cma: dllz3stubs.so z3.cmo
-	$(OCAMLC) -a -o $@ -dllib -lz3stubs z3.cmo
-
-################################################################################
-
-install: META $(NAME).cma $(NAME).cmxa z3.cmi libz3stubs.a dllz3stubs.so
-ifeq ($(shell which ocamlfind),)
-	install -d $(OCAMLWHERE)/$(NAME)
-	install -t $(OCAMLWHERE)/$(NAME) $(NAME).cma $(NAME).cmxa $(NAME).a \
-z3.cmi libz3stubs.a META
-	install -t $(OCAMLWHERE)/stublibs dllz3stubs.so
-else
-	ocamlfind install $(NAME) META $(NAME).cma $(NAME).cmxa $(NAME).a \
-z3.cmi libz3stubs.a -dll dllz3stubs.so
-endif
-
-uninstall:
-ifeq ($(shell which ocamlfind),)
-	$(RM) -r $(OCAMLWHERE)/z3 $(OCAMLWHERE)/stublibs/dllz3stubs.so
-else
-	ocamlfind remove z3
-endif
-
-install-z3:
-	install -t $(LIB) $(Z3_LIB)/libz3.so
-	ldconfig -n $(LIB)
-
-install-z3-gmp:
+lib-install:
+ifdef WITH_GMP
 	cp $(Z3_LIB)/libz3-gmp.so $(LIB)/libz3.so
 	chmod a+rx,go-w $(LIB)/libz3.so
 	ldconfig -n $(LIB)
+else
+	install -t $(LIB) $(Z3_LIB)/libz3.so
+	ldconfig -n $(LIB)
+endif
+	install -t $(INCLUDE) $(Z3_INCLUDE)/*.h
 
-################################################################################
+lib-uninstall:
+	$(RM) $(LIB)/libz3.so
+	$(RM) $(INCLUDE)/z3_*.h  $(INCLUDE)/z3.h
 
-doc:
-	@mkdir -p doc
-	ocamldoc z3.mli -html -d doc
+bin-install:
+	install -t $(BIN) $(Z3_BIN)/z3
 
-################################################################################
-distclean clean:
-	$(RM) *.cmo *.cmi *.cmx *.cma *.cmxa *.o *.a *.so
+bin-uninstall:
+	$(RM) $(BIN)/z3
+
+ocaml-doc:
+	$(MAKE) -C z3/ocaml doc
+	@ln -s z3/ocaml/doc doc
+
+install: lib-install  ocaml-install bin-install
+uninstall: lib-uninstall ocaml-uninstall bin-uninstall
+
+clean:
+	$(MAKE) -C z3/ocaml clean
+distclean: clean
+	$(RM) -r z3/ z3*gz .links doc
