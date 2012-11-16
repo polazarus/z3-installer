@@ -1,16 +1,18 @@
 Z3 Installer
 ============
-Mickaël Delahaye, 2011
+Mickaël Delahaye, 2012
 
 [Microsoft Z3][1] is a powerful SMT solver. The authors of this tool let a Linux
 version available to researchers, and it comes with its own Ocaml binding.
 However, building and installing it is just too boring to do more than once.
 Here is some files that automates the task.
 
+UPDATE v0.3! Z3 is available with source at [Codeplex][2]. However, for now, the Ocaml binding is not available with Z3. For now, Z3 Installer uses the not so old version 4.1, which comes in binary form with the binding.
+
 To the point
 ------------
 
-First, get the installer either by downloading it from [Github][2]
+First, get the installer either by downloading it from [Github][3]
 or by cloning it :
 
 	git clone git://github.com/polazarus/z3-installer.git
@@ -25,8 +27,8 @@ Requirements
 ------------
 
 - GCC, GNU Make
-- Ocaml (shocking!)
-- [Camlidl][3]
+- Ocaml
+- [Camlidl][4]
 - Findlib (optionally)
 
 More
@@ -93,6 +95,7 @@ Contents
 *   `Makefile.ocaml`, the Makefile for the Ocaml library
 *   `download.sh`, a shell script (tested with bash and dash) that selects,
     downloads, extracts the suitable tarball from the Z3 project's website
+*   `download-links.txt`, a list of links to the last binary version of Z3 for Linux and OS X
 
 Acknowledgements
 ----------------
@@ -100,7 +103,7 @@ All the Z3 team for the solver and Jakob Lichtenberg for the Ocaml interface.
 
 License
 -------
-Copyright (c) 2011, Mickaël Delahaye
+Copyright (c) 2012, Mickaël Delahaye <http://micdel.fr>
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -115,5 +118,6 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 
 [1]: http://research.microsoft.com/en-us/um/redmond/projects/z3/
-[2]: https://github.com/polazarus/ocaml-z3-makefile/tarball/master
-[3]: http://caml.inria.fr/pub/old_caml_site/camlidl/
+[2]: http://z3.codeplex.com/
+[3]: https://github.com/polazarus/ocaml-z3-makefile/tarball/z3/tags
+[4]: http://caml.inria.fr/pub/old_caml_site/camlidl/
